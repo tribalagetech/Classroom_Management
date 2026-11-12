@@ -1,0 +1,184 @@
+<div class="row g-3 mb-4">
+
+    <!-- LEFT: THE MONTH -->
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2 py-2">
+
+                <div class="d-flex align-items-center gap-2">
+                    <a class="btn btn-outline-light btn-sm" href="{% url 'schoolcalendar:month_ym' prev.year prev.month %}">‹</a>
+
+                    <!-- Click the month name to open the jump-to-date pop-up -->
+                    <div class="dropdown" id="calPicker"
+                         data-url="{% url 'schoolcalendar:month_ym' 9999 99 %}"
+                         data-year="{{ year }}" data-month="{{ month }}"
+                         data-today="{{ today|date:'Y-m-d' }}"
+                         data-selected="{% if selected_day %}{{ selected_day.date|date:'Y-m-d' }}{% endif %}">
+                        <button type="button" class="btn btn-link text-decoration-none cal-title-btn dropdown-toggle px-1"
+                                data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"
+                                title="Click to jump to a month or date">{{ month_label }}</button>
+
+                        <div class="dropdown-menu cal-picker p-2">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <button type="button" class="btn btn-outline-light btn-sm py-0" id="cpPrev" aria-label="Previous">‹</button>
+                                <button type="button" class="btn btn-link btn-sm fw-semibold text-decoration-none" id="cpTitle"
+                                        title="Switch between days and months"></button>
+                                <button type="button" class="btn btn-outline-light btn-sm py-0" id="cpNext" aria-label="Next">›</button>
+                            </div>
+                            <div id="cpBody"></div>
+                            <button type="button" class="btn btn-primary btn-sm w-100 mt-2" id="cpOpen"></button>
+                        </div>
+                    </div>
+
+                    <a class="btn btn-outline-light btn-sm" href="{% url 'schoolcalendar:month_ym' next.year next.month %}">›</a>
+                    <a class="btn btn-outline-light btn-sm" href="{% url 'schoolcalendar:month' %}">Today</a>
+                </div>
+
+                <div class="d-flex gap-2">
+                    {% if can_manage_terms %}
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#termModal">
+                            🗓 Add custom school calendar
+                        </button>
+                    {% endif %}
+                    {% if perms.schoolcalendar.add_calendarevent %}
+                        <a href="{% url 'schoolcalendar:event_add' %}" class="btn btn-outline-light btn-sm">+ Add event</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card-body p-2">
+
+                {% if selected_day %}
+                    <div class="selected-day small mb-2 d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong>{{ selected_day.date|date:"l, j F Y" }}</strong>
+                            {% if selected_day.term %}
+                                · {{ selected_day.term.name }}, week {{ selected_day.week_no }}
+                            {% elif selected_day.status == 'break' %}
+                                · School holiday
+                            {% endif %}
+                            {% if selected_day.weekend %} · Weekend{% endif %}
+                            {% for e in selected_day.events %}
+                                <br>• {{ e.title }}{% if not e.confirmed %}*{% endif %}
+                                <span class="text-muted">({{ e.get_event_type_display }})</span>
+                            {% endfor %}
+                        </div>
+                        <a href="{% url 'schoolcalendar:month_ym' year month %}" class="small">Clear</a>
+                    </div>
+                {% endif %}
+
+                <div class="table-responsive">
+                    <table class="table table-bordered cal-table mb-0">
+                        <thead>
+                            <tr>{% for name in weekday_names %}<th>{{ name }}</th>{% endfor %}</tr>
+                        </thead>
+                        <tbody>
+                        {% for week in weeks %}
+                            <tr>
+                            {% for day in week %}
+                                <td id="d-{{ day.date|date:'Y-m-d' }}" data-date="{{ day.date|date:'Y-m-d' }}"
+                                    tabindex="0" role="button" title="Click for details"
+                                    class="cal-cell cal-clickable
+                                    {% if not day.in_month %}cal-out{% endif %}
+                                    {% if day.weekend %}cal-weekend{% endif %}
+                                    {% if day.status == 'term' %}cal-term{% elif day.status == 'break' %}cal-break{% endif %}
+                                    {% if day.public_holiday %}cal-ph{% endif %}
+                                    {% if day.today %}cal-today{% endif %}
+                                    {% if selected_day and day.date == selected_day.date %}cal-selected{% endif %}">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="cal-num">{{ day.date.day }}</span>
+                                        {% if day.term_week %}<span class="cal-wk">Wk {{ day.term_week }}</span>{% endif %}
+                                    </div>
+                                    {% for e in day.events|slice:":2" %}
+                                        <span class="cal-chip ev-{{ e.event_type }}" title="{{ e.title }}">{% if e.start_time %}{{ e.start_time|time:"H:i" }} {% endif %}{{ e.title }}{% if not e.confirmed %}*{% endif %}</span>
+                                    {% endfor %}
+                                    {% if day.events|length > 2 %}
+                                        <span class="cal-more">+{{ day.events|length|add:"-2" }} more</span>
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="small text-muted mt-2 d-flex flex-wrap gap-3">
+                    <span><span class="cal-key cal-term"></span> Term day</span>
+                    <span><span class="cal-key cal-break"></span> School holiday</span>
+                    <span><span class="cal-key cal-ph"></span> Public holiday</span>
+                    <span>* not yet confirmed</span>
+                    <span>Click any day for details</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: TERMS AND EVENTS (below the calendar on smaller screens) -->
+    <div class="col-xl-4">
+
+        <div class="card mb-3">
+            <div class="card-header"><h5 class="mb-0">{{ year }} terms and holidays</h5></div>
+            <div class="card-body">
+                {% if year_summary %}
+                    {% with first=year_summary.0.term last=year_summary|last %}
+                        <div class="small mb-3">
+                            <strong>School year:</strong>
+                            {{ first.start_date|date:"j M Y" }} to {{ last.term.end_date|date:"j M Y" }}
+                        </div>
+                    {% endwith %}
+                {% endif %}
+
+                {% for row in year_summary %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ row.term.name }}</strong>{% if not row.term.confirmed %}*{% endif %}:
+                                {{ row.term.start_date|date:"j M" }} to {{ row.term.end_date|date:"j M" }}
+                                ({{ row.term.weeks }} weeks)
+                            </div>
+                            {% if can_manage_terms %}
+                                <button type="button" class="btn btn-outline-light btn-sm py-0"
+                                        data-bs-toggle="modal" data-bs-target="#termModal"
+                                        data-term-year="{{ row.term.year }}" data-term-number="{{ row.term.number }}">Edit</button>
+                            {% endif %}
+                        </div>
+                        {% if row.brk %}
+                            <div class="text-muted small">
+                                Holiday: {{ row.brk.start|date:"j M" }} to {{ row.brk.end|date:"j M" }}
+                                ({{ row.brk.weeks }} week{{ row.brk.weeks|pluralize }}{% if row.brk.planned %}, planned{% endif %})
+                            </div>
+                        {% endif %}
+                        {% if row.term.staff_info %}
+                            <div class="staff-note small mt-1">📌 {{ row.term.staff_info|linebreaksbr }}</div>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <span class="text-muted small">No terms set for {{ year }}.</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0">Events in {{ month_label }}</h5></div>
+            <div class="card-body">
+                {% for e in month_events %}
+                    <div class="mb-2">
+                        <span class="cal-chip d-inline-block ev-{{ e.event_type }}">{{ e.get_event_type_display }}</span>
+                        <strong>{{ e.title }}</strong>{% if not e.confirmed %}*{% endif %}<br>
+                        <span class="small text-muted">
+                            {{ e.start_date|date:"D j M" }}{% if e.end_date != e.start_date %} to {{ e.end_date|date:"D j M" }}{% endif %}
+                            {% if e.start_time %}, {{ e.start_time|time:"H:i" }}{% if e.end_time %} to {{ e.end_time|time:"H:i" }}{% endif %}{% endif %}
+                        </span>
+                    </div>
+                {% empty %}
+                    <span class="text-muted small">Nothing scheduled this month.</span>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% include 'schoolcalendar/_day_modal.html' %}
+{% if can_manage_terms %}{% include 'schoolcalendar/_term_modal.html' %}{% endif %}

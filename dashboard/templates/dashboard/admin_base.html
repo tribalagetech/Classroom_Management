@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- NAVBAR: logo left, menu middle, logout right -->
+<nav class="navbar navbar-expand-md navbar-dark app-navbar rounded-3 mt-3 px-3">
+    <a class="navbar-brand fw-bold" href="{% url 'dashboard:admin_home' %}">🎓 Classroom <small class="text-muted">Admin</small></a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="adminMenu">
+        <ul class="navbar-nav mx-auto">
+            <!-- url_name tells us which page we are on, so the right menu item lights up -->
+            {% with page=request.resolver_match.url_name %}
+            <li class="nav-item"><a class="nav-link {% if page == 'admin_home' %}active{% endif %}" href="{% url 'dashboard:admin_home' %}">Admin</a></li>
+            <li class="nav-item"><a class="nav-link {% if page == 'resources' %}active{% endif %}" href="{% url 'dashboard:resources' %}">Resources Management</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.resolver_match.app_name == 'schoolcalendar' %}active{% endif %}" href="{% url 'schoolcalendar:month' %}">Schedules</a></li>
+            <li class="nav-item"><a class="nav-link {% if page == 'inventory' %}active{% endif %}" href="{% url 'dashboard:inventory' %}">Inventory Management</a></li>
+            {% endwith %}
+        </ul>
+
+        <form method="post" action="{% url 'authentication:logout' %}" class="m-0">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-sm">Logout</button>
+        </form>
+    </div>
+</nav>
+
+<div class="row g-3 mt-1 mb-4">
+
+    <!-- SIDEBAR -->
+    <aside class="col-md-3 col-lg-2 align-self-start side-sticky">
+        <div class="card sidebar">
+            <div class="card-body text-center border-bottom">
+                <div class="fw-semibold">{{ user.get_full_name|default:user.username }}</div>
+                <span class="badge subject-badge">{% if user.is_superuser %}Super Admin{% else %}Admin{% endif %}</span>
+            </div>
+
+            <nav class="nav flex-column py-2">
+                <a class="nav-link {% if request.resolver_match.url_name == 'admin_home' %}active{% endif %}"
+                   href="{% url 'dashboard:admin_home' %}">🏠 Overview</a>
+
+                <!-- perms.* hides a link from admins who lack that permission -->
+                {% if perms.students.view_student %}
+                    <a class="nav-link" href="{% url 'admin:students_student_changelist' %}">🎓 Student Info</a>
+                {% endif %}
+                {% if perms.students.add_student %}
+                    <a class="nav-link" href="{% url 'students:register' %}">➕ Register Student</a>
+                {% endif %}
+                <a class="nav-link" href="{% url 'teachers:list' %}">👩‍🏫 Teachers</a>
+                {% if user.is_superuser %}
+                    <a class="nav-link" href="{% url 'students:subjects' %}">📚 Subjects</a>
+                {% endif %}
+                <a class="nav-link" href="#">🏫 Classroom Info</a>
+                <a class="nav-link" href="#">🏛️ School Info</a>
+                <a class="nav-link" href="{% url 'admin:index' %}">🗄️ Database &amp; Backend</a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT: each admin page fills this block -->
+    <main class="col-md-9 col-lg-10">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} py-2">{{ message }}</div>
+        {% endfor %}
+
+        {% block page %}{% endblock %}
+    </main>
+
+</div>
+{% endblock %}

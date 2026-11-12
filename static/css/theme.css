@@ -1,0 +1,476 @@
+/* static/css/theme.css */
+
+/* 1. Color tokens: change a color here and the whole site updates */
+:root {
+    --deep-purple: #1e0838;
+    --wine: #4a0e2e;
+    --dragon-blood: #8b0a1f;
+    --blood-bright: #c0142f;
+    --blood-dark: #5a0b1f;
+    --input-bg: #2a0f2e;
+    --input-border: #6b1a3a;
+    --text-main: #f1e6ea;
+}
+
+/* 2. Page background and default text color */
+body {
+    background: linear-gradient(135deg, var(--deep-purple) 0%, var(--wine) 50%, var(--dragon-blood) 100%);
+    background-attachment: fixed;
+    /* gradient stays put while scrolling */
+    min-height: 100vh;
+    color: var(--text-main);
+    /* light text, otherwise headings vanish on dark */
+}
+
+/* 3. Cards */
+.card {
+    background-color: rgba(20, 5, 20, 0.75);
+    border: 1px solid var(--dragon-blood);
+    color: var(--text-main);
+}
+
+.card-header {
+    background-color: var(--blood-dark);
+    border-bottom: 1px solid var(--dragon-blood);
+    color: #fff;
+}
+
+/* 4. Forms */
+.form-control {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: #fff;
+}
+
+.form-control:focus {
+    background-color: var(--input-bg);
+    color: #fff;
+    border-color: var(--blood-bright);
+    box-shadow: 0 0 0 0.2rem rgba(192, 20, 47, 0.35);
+}
+
+.form-control::placeholder {
+    color: #a58a99;
+}
+
+/* 5. Buttons */
+.btn-primary {
+    background-color: #a30f26;
+    border-color: #a30f26;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--blood-bright);
+    border-color: var(--blood-bright);
+}
+
+/* 6. Links, muted text, navbar, tables */
+a {
+    color: #ff6b81;
+}
+
+a:hover {
+    color: #ff9aa9;
+}
+
+.text-muted {
+    color: #b89aa8 !important;
+}
+
+.navbar {
+    background-color: rgba(20, 5, 20, 0.8) !important;
+    border-bottom: 1px solid var(--dragon-blood);
+}
+
+.navbar .nav-link,
+.navbar-brand {
+    color: var(--text-main) !important;
+}
+
+.table {
+    color: var(--text-main);
+    border-color: var(--input-border);
+}
+
+
+
+
+
+/* ---------- Dashboard navbar and sidebar ---------- */
+.app-navbar {
+    background-color: rgba(20, 5, 20, 0.85);
+    border: 1px solid var(--dragon-blood);
+}
+
+.app-navbar .nav-link {
+    color: var(--text-main);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+}
+
+.app-navbar .nav-link:hover {
+    background-color: rgba(192, 20, 47, 0.25);
+    color: #fff;
+}
+
+.sidebar .nav-link {
+    color: var(--text-main);
+    padding: 0.6rem 1.25rem;
+    border-left: 3px solid transparent;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(192, 20, 47, 0.18);
+    border-left-color: var(--blood-bright);
+}
+
+.sidebar .nav-link.active {
+    background-color: rgba(139, 10, 31, 0.45);
+    border-left-color: var(--blood-bright);
+    color: #fff;
+}
+
+
+
+/* ---------- Tables and subject badges ---------- */
+.table {
+    --bs-table-bg: transparent;
+    /* let the card's dark background show through */
+    --bs-table-color: var(--text-main);
+    --bs-table-hover-bg: rgba(192, 20, 47, 0.15);
+    --bs-table-hover-color: #fff;
+    --bs-table-border-color: var(--input-border);
+}
+
+.table thead th {
+    background-color: var(--blood-dark);
+    color: #fff;
+    border-bottom: 1px solid var(--dragon-blood);
+}
+
+.subject-badge {
+    background-color: rgba(192, 20, 47, 0.25);
+    color: #ffd6dc;
+    border: 1px solid var(--dragon-blood);
+    font-weight: 500;
+    margin: 0 2px 2px 0;
+}
+
+.app-navbar .nav-link.active {
+    background-color: var(--dragon-blood);
+    color: #fff;
+}
+
+/* ---------- School calendar ---------- */
+.cal-table {
+    table-layout: fixed;
+    min-width: 760px;
+    --bs-table-bg: transparent;
+}
+
+.cal-table thead th {
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+.cal-cell {
+    height: 104px;
+    vertical-align: top;
+    padding: 4px !important;
+    font-size: 0.75rem;
+}
+
+.cal-num {
+    font-weight: 600;
+}
+
+.cal-wk {
+    font-size: 0.65rem;
+    color: #b89aa8;
+}
+
+.cal-out {
+    opacity: 0.35;
+}
+
+/* !important is needed because Bootstrap paints table cells with its own variable */
+.cal-weekend {
+    background-color: rgba(0, 0, 0, 0.25) !important;
+}
+
+.cal-term {
+    background-color: rgba(139, 10, 31, 0.14) !important;
+}
+
+.cal-break {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.cal-ph {
+    background-color: rgba(192, 20, 47, 0.30) !important;
+}
+
+.cal-today {
+    outline: 2px solid var(--blood-bright);
+    outline-offset: -2px;
+}
+
+.cal-chip {
+    display: block;
+    margin-top: 2px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    line-height: 1.3;
+    color: #fff !important;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ev-PUBLIC_HOLIDAY {
+    background: #c0142f;
+}
+
+.ev-IEA_SPECIAL {
+    background: #7b3fa0;
+}
+
+.ev-SCHOOL_EVENT {
+    background: #1f7a6d;
+}
+
+.ev-SCHEDULE {
+    background: #8a6d1f;
+}
+
+.ev-EXAM {
+    background: #b5541a;
+}
+
+.ev-STAFF_DAY {
+    background: #555;
+}
+
+.cal-key {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--input-border);
+    vertical-align: middle;
+}
+
+/* ---------- Pop-up and helper calendar ---------- */
+.modal-content {
+    background-color: #1a0a1e;
+    border: 1px solid var(--dragon-blood);
+    color: var(--text-main);
+}
+
+.modal-header,
+.modal-footer {
+    border-color: var(--input-border);
+}
+
+.modal .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.btn-group .btn-outline-light.active {
+    background-color: var(--dragon-blood);
+    border-color: var(--dragon-blood);
+    color: #fff;
+}
+
+/* hidden native date input: only used to open the browser's date picker */
+.date-native {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.term-summary {
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: rgba(139, 10, 31, 0.25);
+    border: 1px solid var(--dragon-blood);
+}
+
+.staff-note {
+    padding: 4px 8px;
+    border-left: 3px solid var(--blood-bright);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0 4px 4px 0;
+}
+
+.mini-cal {
+    padding: 10px;
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.mc-head,
+.mc-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    text-align: center;
+}
+
+.mc-head span {
+    font-size: 0.7rem;
+    color: #b89aa8;
+}
+
+.mc-day {
+    border: 0;
+    border-radius: 4px;
+    padding: 5px 0;
+    font-size: 0.75rem;
+    background: transparent;
+    color: var(--text-main);
+}
+
+.mc-day:hover {
+    background: rgba(192, 20, 47, 0.35);
+}
+
+.mc-weekend {
+    color: #b89aa8;
+}
+
+.mc-other {
+    background: rgba(123, 63, 160, 0.40);
+}
+
+.mc-range {
+    background: rgba(192, 20, 47, 0.35);
+}
+
+.mc-start,
+.mc-end {
+    background: var(--blood-bright) !important;
+    color: #fff;
+    font-weight: 700;
+}
+
+.mc-key {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    vertical-align: middle;
+}
+
+/* ---------- Jump-to-date picker ---------- */
+.cal-title-btn {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #fff !important;
+}
+
+.cal-title-btn:hover {
+    color: #ffd6dc !important;
+}
+
+.cal-picker {
+    min-width: 290px;
+    background-color: #1a0a1e;
+    border: 1px solid var(--dragon-blood);
+}
+
+.cp-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    text-align: center;
+}
+
+.cp-head span {
+    font-size: 0.7rem;
+    color: #b89aa8;
+    padding-bottom: 2px;
+}
+
+.cp-day {
+    border: 0;
+    border-radius: 6px;
+    padding: 7px 0;
+    font-size: 0.8rem;
+    background: transparent;
+    color: var(--text-main);
+}
+
+.cp-day:hover,
+.cp-month:hover {
+    background: rgba(192, 20, 47, 0.40);
+}
+
+.cp-weekend {
+    color: #b89aa8;
+}
+
+.cp-today {
+    outline: 1px solid var(--blood-bright);
+}
+
+.cp-selected,
+.cp-current {
+    background: var(--blood-bright) !important;
+    color: #fff;
+    font-weight: 700;
+}
+
+.cp-months {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+
+.cp-month {
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    padding: 12px 0;
+    background: transparent;
+    color: var(--text-main);
+}
+
+/* the day picked from the pop-up */
+.cal-selected {
+    outline: 2px dashed #ffd6dc;
+    outline-offset: -2px;
+}
+
+.selected-day {
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: rgba(139, 10, 31, 0.25);
+    border: 1px solid var(--dragon-blood);
+}
+
+/* ---------- Compact calendar, clickable days, sticky sidebar ---------- */
+.cal-table { min-width: 0 !important; }
+.cal-table thead th { padding: 3px 0; font-size: 0.72rem; }
+.cal-cell { height: 66px !important; padding: 3px !important; font-size: 0.7rem; }
+.cal-num { font-size: 0.75rem; }
+.cal-wk { font-size: 0.58rem; }
+.cal-chip { margin-top: 1px; padding: 0 4px; font-size: 0.62rem; line-height: 1.35; }
+.cal-more { display: block; font-size: 0.58rem; color: #b89aa8; }
+
+.cal-clickable { cursor: pointer; }
+.cal-clickable:hover { outline: 2px solid rgba(192, 20, 47, 0.85); outline-offset: -2px; }
+.cal-clickable:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+
+/* keep the sidebar at the top: no stretching to the page height, and it follows you as you scroll */
+.side-sticky { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; }
+.sidebar .card-body { flex: 0 0 auto; }
+
+/* on phones, let the calendar scroll sideways instead of squashing the days */
+@media (max-width: 767px) { .cal-table { min-width: 560px !important; } }

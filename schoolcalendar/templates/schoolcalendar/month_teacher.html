@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}School Calendar{% endblock %}
+{% block content %}
+<a href="{{ home_url }}" class="small d-inline-block mt-3 mb-2">← Back to dashboard</a>
+{% include 'schoolcalendar/_calendar_body.html' %}
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/calendar_nav.js' %}"></script>
+    <script src="{% static 'js/calendar_days.js' %}"></script>
+{% endblock %}

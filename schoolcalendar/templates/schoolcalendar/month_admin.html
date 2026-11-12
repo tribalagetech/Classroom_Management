@@ -1,0 +1,10 @@
+{% extends 'dashboard/admin_base.html' %}
+{% load static %}
+{% block title %}School Calendar{% endblock %}
+{% block page %}{% include 'schoolcalendar/_calendar_body.html' %}{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/calendar_nav.js' %}"></script>
+    <script src="{% static 'js/calendar_days.js' %}"></script>
+    {% if can_manage_terms %}<script src="{% static 'js/term_modal.js' %}"></script>{% endif %}
+{% endblock %}

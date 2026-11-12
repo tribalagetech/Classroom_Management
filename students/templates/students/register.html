@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block title %}Register Student{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-xl-9 col-lg-10">
+
+<a href="{% url 'teachers:list' %}" class="small d-inline-block mt-3">← Back</a>
+{% for message in messages %}
+    <div class="alert alert-{{ message.tags }} py-2 mt-2">{{ message }}</div>
+{% endfor %}
+
+<!-- enctype is REQUIRED, otherwise the photo upload is silently ignored -->
+<form method="post" enctype="multipart/form-data" class="mt-2 mb-5">
+    {% csrf_token %}
+
+    {% if form.errors or father_form.errors or mother_form.errors or schools_fs.total_error_count or siblings_fs.total_error_count %}
+        <div class="alert alert-danger py-2">Please correct the errors marked below.</div>
+    {% endif %}
+
+    <!-- 1. STUDENT -->
+    <div class="card mb-3">
+        <div class="card-header"><h5 class="mb-0">1. Student information</h5></div>
+        <div class="card-body"><div class="row">
+            {% include 'students/_field.html' with field=form.last_name %}
+            {% include 'students/_field.html' with field=form.first_name %}
+            {% include 'students/_field.html' with field=form.date_of_birth %}
+            {% include 'students/_field.html' with field=form.gender %}
+            {% include 'students/_field.html' with field=form.nationality %}
+            {% include 'students/_field.html' with field=form.religion %}
+            {% include 'students/_field.html' with field=form.grade %}
+            {% include 'students/_field.html' with field=form.starting_date %}
+            {% include 'students/_field.html' with field=form.photo cols='col-12' %}
+        </div></div>
+    </div>
+
+    <!-- 2. CONTACT -->
+    <div class="card mb-3">
+        <div class="card-header"><h5 class="mb-0">2. Student contact details</h5></div>
+        <div class="card-body"><div class="row">
+            {% include 'students/_field.html' with field=form.postal_address %}
+            {% include 'students/_field.html' with field=form.residential_address %}
+            {% include 'students/_field.html' with field=form.lives_with %}
+            {% include 'students/_field.html' with field=form.transport_arrangements %}
+        </div></div>
+    </div>
+
+    <!-- 3. FEES -->
+    <div class="card mb-3">
+        <div class="card-header"><h5 class="mb-0">3. Who will pay the school fee?</h5></div>
+        <div class="card-body"><div class="row">
+            {% include 'students/_field.html' with field=form.fee_payer cols='col-md-4' %}
+            {% include 'students/_field.html' with field=form.fee_payer_name cols='col-md-4' %}
+            {% include 'students/_field.html' with field=form.fee_payer_department cols='col-md-4' %}
+        </div></div>
+    </div>
+
+    <!-- 4. FATHER -->
+    <div class="card mb-3">
+        <div class="card-header"><h5 class="mb-0">4. Father / guardian</h5></div>
+        <div class="card-body"><div class="row">
+            {% for field in father_form %}{% include 'students/_field.html' with field=field %}{% endfor %}
+        </div></div>
+    </div>
+
+    <!-- 5. MOTHER -->
+    <div class="card mb-3">
+        <div class="card-header"><h5 class="mb-0">5. Mother / guardian</h5></div>
+        <div class="card-body"><div class="row">
+            {% for field in mother_form %}{% include 'students/_field.html' with field=field %}{% endfor %}
+        </div></div>
+    </div>
+
+    <!-- 6. EMERGENCY -->
+    <div class="card mb-3">
+        <div class="card-header"><h5 class="mb-0">6. Other emergency contact</h5></div>
+        <div class="card-body"><div class="row">
+            {% include 'students/_field.html' with field=form.emergency_contact_name %}
+            {% include 'students/_field.html' with field=form.emergency_contact_phone %}
+        </div></div>
+    </div>
+
+    <!-- 7. PREVIOUS SCHOOLS -->
+    <div class="card mb-3">
+        <div class="card-header"><h5 class="mb-0">7. Schools attended in the last 3 years</h5></div>
+        <div class="card-body">
+            {{ schools_fs.management_form }}   <!-- Django needs this to count the rows -->
+            {% for f in schools_fs %}
+                {% for h in f.hidden_fields %}{{ h }}{% endfor %}
+                <div class="row {% if not forloop.last %}border-bottom mb-2{% endif %}">
+                    {% include 'students/_field.html' with field=f.year cols='col-md-2' %}
+                    {% include 'students/_field.html' with field=f.grade cols='col-md-2' %}
+                    {% include 'students/_field.html' with field=f.school cols='col-md-4' %}
+                    {% include 'students/_field.html' with field=f.country cols='col-md-2' %}
+                    {% include 'students/_field.html' with field=f.province cols='col-md-2' %}
+                </div>
+            {% endfor %}
+            <div class="small text-muted">Leave unused rows blank.</div>
+        </div>
+    </div>
+
+    <!-- 8. OTHER CHILDREN -->
+    <div class="card mb-3">
+        <div class="card-header"><h5 class="mb-0">8. Other children attending this or another school</h5></div>
+        <div class="card-body">
+            {{ siblings_fs.management_form }}
+            {% for f in siblings_fs %}
+                {% for h in f.hidden_fields %}{{ h }}{% endfor %}
+                <div class="row {% if not forloop.last %}border-bottom mb-2{% endif %}">
+                    {% include 'students/_field.html' with field=f.name cols='col-md-5' %}
+                    {% include 'students/_field.html' with field=f.grade cols='col-md-2' %}
+                    {% include 'students/_field.html' with field=f.school cols='col-md-5' %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 9. LANGUAGES AND HEALTH -->
+    <div class="card mb-3">
+        <div class="card-header"><h5 class="mb-0">9. Languages, health and special needs</h5></div>
+        <div class="card-body"><div class="row">
+            {% include 'students/_field.html' with field=form.home_language %}
+            {% include 'students/_field.html' with field=form.other_languages %}
+            {% include 'students/_field.html' with field=form.disabilities %}
+            {% include 'students/_field.html' with field=form.special_needs %}
+            {% include 'students/_field.html' with field=form.medical_condition cols='col-12' %}
+            {% include 'students/_field.html' with field=form.doctor_name %}
+            {% include 'students/_field.html' with field=form.doctor_phone %}
+        </div></div>
+    </div>
+
+    <!-- 10. SUBJECTS -->
+    <div class="card mb-3">
+        <div class="card-header"><h5 class="mb-0">10. Subjects</h5></div>
+        <div class="card-body">
+            {% for checkbox in form.subjects %}
+                <div class="form-check form-check-inline">
+                    {{ checkbox.tag }}
+                    <label class="form-check-label" for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+                </div>
+            {% empty %}
+                <span class="text-muted small">No subjects defined yet. An administrator can add them under Manage Subjects.</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 11. DECLARATION -->
+    <div class="card mb-3">
+        <div class="card-header"><h5 class="mb-0">11. Declaration</h5></div>
+        <div class="card-body"><div class="row">
+            {% include 'students/_field.html' with field=form.heard_about cols='col-md-6' %}
+            <div class="col-12 mt-2">
+                <div class="form-check mb-2">
+                    {{ form.photo_consent }}
+                    <label class="form-check-label" for="{{ form.photo_consent.id_for_label }}">{{ form.photo_consent.label }}</label>
+                </div>
+                <div class="form-check">
+                    {{ form.declaration_accepted }}
+                    <label class="form-check-label" for="{{ form.declaration_accepted.id_for_label }}">{{ form.declaration_accepted.label }}</label>
+                    {% for e in form.declaration_accepted.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                </div>
+            </div>
+        </div></div>
+    </div>
+
+    <p class="small text-muted">The ID number is generated automatically when you save.</p>
+    <button type="submit" class="btn btn-primary">Save Student</button>
+    <a href="{% url 'teachers:list' %}" class="btn btn-outline-light">Cancel</a>
+</form>
+
+</div>
+</div>
+{% endblock %}

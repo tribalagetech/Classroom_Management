@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- NAVBAR: logo left, menu middle, logout right -->
+<nav class="navbar navbar-expand-md navbar-dark app-navbar rounded-3 mt-3 px-3">
+    <a class="navbar-brand fw-bold" href="{% url 'dashboard:teacher' %}">🎓 Classroom</a>
+
+    <!-- hamburger button, only shows on small screens -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainMenu">
+        <!-- mx-auto centers the menu -->
+        <ul class="navbar-nav mx-auto">
+            <!-- change each "#" to a link once the page exists -->
+            <li class="nav-item"><a class="nav-link" href="#">Classroom</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Student Records</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Assessment</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Upload Resources</a></li>
+        </ul>
+
+        <!-- logout is a POST form, so it needs the csrf token -->
+        <form method="post" action="{% url 'authentication:logout' %}" class="m-0">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-sm">Logout</button>
+        </form>
+    </div>
+</nav>
+
+<div class="row g-3 mt-1 mb-4">
+
+    <!-- SIDEBAR -->
+    <aside class="col-md-3 col-lg-2 align-self-start side-sticky">
+        <div class="card sidebar">
+            <!-- teacher_profile is the link from the User to their Teacher record -->
+            {% with t=request.user.teacher_profile %}
+            <div class="card-body text-center border-bottom">
+                <div class="fw-semibold">{{ t.first_name }} {{ t.last_name }}</div>
+                <div class="small text-muted">{{ t.class_assigned }}</div>
+            </div>
+            {% endwith %}
+            <nav class="nav flex-column py-2">
+                <a class="nav-link active" href="{% url 'dashboard:teacher' %}">🏠 Overview</a>
+                <a class="nav-link" href="#">🏫 My Class</a>
+                <a class="nav-link" href="#">📋 Attendance</a>
+                <a class="nav-link" href="{% url 'schoolcalendar:month' %}">📅 School Calendar</a>
+                <a class="nav-link" href="#">👤 My Profile</a>
+            </nav>
+        </div>
+    </aside>
+<!-- MAIN CONTENT -->
+<main class="col-md-9 col-lg-10">
+
+    <!-- welcome (unchanged) -->
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">Dashboard</h4>
+        </div>
+        <div class="card-body">
+            <h5>Welcome, {{ request.user.first_name|default:request.user.username }}!</h5>
+            <p class="text-muted mb-0">Use the menu above or the sidebar to get started.</p>
+        </div>
+    </div>
+
+    <!-- STUDENT TABLE -->
+    <div class="card mt-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Students</h5>
+            <span class="badge subject-badge">{{ students|length }} total</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID Number</th>
+                            <th>Student Name</th>
+                            <th>Grade</th>
+                            <th>Subjects</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in students %}
+                        <tr>
+                            <td>{{ s.student_id }}</td>
+                            <td>{{ s.full_name }}</td>
+                            <!-- get_grade_display turns 7 into "Grade 7" -->
+                            <td>{{ s.get_grade_display }}</td>
+                            <td>
+                                {% for subject in s.subjects.all %}
+                                <span class="badge subject-badge">{{ subject.name }}</span>
+                                {% empty %}
+                                <span class="text-muted small">None</span>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-3">No students yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+</div>
+{% endblock %}
