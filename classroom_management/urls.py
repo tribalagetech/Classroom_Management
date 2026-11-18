@@ -21,6 +21,9 @@ urlpatterns = [
     path('students/', include('students.urls')),
     
     path('calendar/', include('schoolcalendar.urls')),
+
+    # classroom_management/urls.py (add one line to urlpatterns)
+    path('resources/', include('resources.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)   # dev only

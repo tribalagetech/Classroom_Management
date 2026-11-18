@@ -15,7 +15,7 @@
             <!-- url_name tells us which page we are on, so the right menu item lights up -->
             {% with page=request.resolver_match.url_name %}
             <li class="nav-item"><a class="nav-link {% if page == 'admin_home' %}active{% endif %}" href="{% url 'dashboard:admin_home' %}">Admin</a></li>
-            <li class="nav-item"><a class="nav-link {% if page == 'resources' %}active{% endif %}" href="{% url 'dashboard:resources' %}">Resources Management</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.resolver_match.app_name == 'resources' %}active{% endif %}" href="{% url 'resources:centre' %}">Resources Management</a></li>
             <li class="nav-item"><a class="nav-link {% if request.resolver_match.app_name == 'schoolcalendar' %}active{% endif %}" href="{% url 'schoolcalendar:month' %}">Schedules</a></li>
             <li class="nav-item"><a class="nav-link {% if page == 'inventory' %}active{% endif %}" href="{% url 'dashboard:inventory' %}">Inventory Management</a></li>
             {% endwith %}
@@ -53,7 +53,7 @@
                 {% if user.is_superuser %}
                     <a class="nav-link" href="{% url 'students:subjects' %}">📚 Subjects</a>
                 {% endif %}
-                <a class="nav-link" href="#">🏫 Classroom Info</a>
+                <a class="nav-link" href="{% url 'students:classes' %}">🏫 Classroom Info</a>
                 <a class="nav-link" href="#">🏛️ School Info</a>
                 <a class="nav-link" href="{% url 'admin:index' %}">🗄️ Database &amp; Backend</a>
             </nav>

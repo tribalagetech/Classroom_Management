@@ -1,49 +1,103 @@
 # students/views.py
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
-
+from django.db import transaction
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .forms import SubjectForm
-from .models import Subject
-from django.db import transaction
-from django.utils import timezone
-from .forms import (GuardianForm, PreviousSchoolFormSet, SiblingFormSet,
-                    StudentForm, SubjectForm)
-from .models import Student, Subject
+from .forms import (GuardianForm, PreviousSchoolFormSet, SchoolClassForm,
+                    SiblingFormSet, StudentForm, SubjectForm)
+from .models import SchoolClass, Student, Subject, YearLevel
 
 # only superusers may define subjects
 superuser_required = user_passes_test(lambda u: u.is_superuser)
 
+@login_required
+@permission_required('students.change_schoolclass', raise_exception=True)
+def class_manage(request, pk=None):
+    instance = get_object_or_404(SchoolClass, pk=pk) if pk else None
+    form = SchoolClassForm(request.POST or None, instance=instance)
+    if request.method == 'POST' and form.is_valid():
+        saved = form.save()
+        messages.success(request, f'{saved.name} {"updated" if instance else "added"}.')
+        return redirect('students:classes')
+
+    classes = (SchoolClass.objects.prefetch_related('year_levels')
+               .annotate(teacher_count=Count('teachers', distinct=True),
+                         student_count=Count('year_levels__students', distinct=True)))
+    return render(request, 'students/classes.html',
+                  {'form': form, 'classes': classes, 'editing': instance})
+
+
+@login_required
+@permission_required('students.delete_schoolclass', raise_exception=True)
+@require_POST
+def class_delete(request, pk):
+    school_class = get_object_or_404(SchoolClass, pk=pk)
+    if school_class.teachers.exists():
+        messages.error(request, f'{school_class.name} still has teachers assigned. '
+                                f'Reassign them first, or untick Active to retire the class.')
+        return redirect('students:classes')
+    name = school_class.name
+    school_class.delete()
+    messages.success(request, f'{name} deleted.')
+    return redirect('students:classes')
 
 @login_required
 @superuser_required
 def subject_manage(request):
-    if request.method == 'POST':
-        form = SubjectForm(request.POST)
-        if form.is_valid():
-            subject = form.save()   # INSERT into the database
-            messages.success(request, f'Subject "{subject.name}" added.')
-            return redirect('students:subjects')
-    else:
-        form = SubjectForm()
+    form = SubjectForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        subject = form.save(commit=False)
+        subject.created_by = request.user
+        subject.save()
+        form.save_m2m()    # saves the ticked year levels
+        messages.success(request, f'Subject "{subject.name}" ({subject.code}) added.')
+        return redirect('students:subjects')
 
-    # annotate adds a student_count to each subject (one query, not one per subject)
-    subjects = Subject.objects.annotate(student_count=Count('students'))
-    return render(request, 'students/subjects.html', {'form': form, 'subjects': subjects})
+    subjects = (Subject.objects.prefetch_related('year_levels')
+                .annotate(student_count=Count('year_levels__students', distinct=True),
+                          resource_count=Count('resources', distinct=True)))
+    level = request.GET.get('level', '')
+    if level.isdigit():
+        subjects = subjects.filter(year_levels__pk=int(level))
+    return render(request, 'students/subjects.html', {
+        'form': form, 'subjects': subjects, 'levels': YearLevel.objects.all(), 'level': level,
+    })
 
 
 @login_required
 @superuser_required
-@require_POST   # deleting changes data, so POST only
+def subject_edit(request, pk):
+    subject = get_object_or_404(Subject, pk=pk)
+    form = SubjectForm(request.POST or None, instance=subject)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, f'Subject "{subject.name}" updated.')
+        return redirect('students:subjects')
+    return render(request, 'students/subject_edit.html', {'form': form, 'subject': subject})
+
+
+@login_required
+@superuser_required
+@require_POST
 def subject_delete(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
-    name = subject.name
-    subject.delete()   # students are NOT deleted, they just lose this subject
-    messages.success(request, f'Subject "{name}" deleted.')
-    return redirect('students:subjects')
+    students, files = subject.students.count(), subject.resources.count()
+    if students or files:
+        # deleting would erase history, so retire it instead
+        messages.error(request, f'"{subject.name}" is used by {students} student(s) and {files} resource(s), '
+                                f'so it cannot be deleted. Edit it and untick Active to retire it.')
+        return redirect('students:subjects')
+    files, tests = subject.resources.count(), subject.assessments.count()
+    if files or tests:
+        messages.error(request, f'"{subject.name}" has {files} resource(s) and {tests} assessment(s), '
+                                f'so it cannot be deleted. Edit it and untick Active to retire it instead.')
+        return redirect('students:subjects')
+
+
 @login_required
 @permission_required('students.add_student', raise_exception=True)
 def student_register(request):

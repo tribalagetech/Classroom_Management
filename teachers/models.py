@@ -24,7 +24,11 @@ class Teacher(models.Model):
     school_id_number = models.CharField(max_length=50, unique=True)
 
     #class assignment
-    class_assigned = models.CharField(max_length=50, blank=True, null=True)
+    # Update this line in your Teacher model:
+    class_assigned = models.CharField(max_length=100, blank=True, null=True)   # legacy text, replaced by school_class   # legacy text, replaced by school_class
+    school_class = models.ForeignKey('students.SchoolClass', null=True, blank=True,
+                                     on_delete=models.SET_NULL, related_name='teachers',
+                                     verbose_name='Class assigned')
 
     #contact information
     residential_address = models.TextField()

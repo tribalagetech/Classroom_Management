@@ -1,0 +1,18 @@
+# Environment variables (CRITICAL for security)
+.env
+
+# Django sensitive or generated files
+private_media/
+media/
+__pycache__/
+*.py[cod]
+db.sqlite3
+
+# Virtual environments (adjust if your venv has a different name)
+env/
+venv/
+.venv/
+
+# IDE files
+.vscode/
+.idea/

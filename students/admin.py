@@ -1,12 +1,23 @@
 # students/admin.py
 from django.contrib import admin
-from .models import Guardian, PreviousSchool, Sibling, Student, Subject
+from .models import Guardian, PreviousSchool, Sibling, Student, Subject, YearLevel,SchoolClass
+
+@admin.register(SchoolClass)
+class SchoolClassAdmin(admin.ModelAdmin):
+    list_display = ('name', 'is_active')
+    filter_horizontal = ('year_levels',)
+    
+@admin.register(YearLevel)
+class YearLevelAdmin(admin.ModelAdmin):
+    list_display = ('name', 'code', 'stage', 'order')
 
 
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description')
-    search_fields = ('name',)
+    list_display = ('code', 'name', 'is_core', 'is_active', 'created_at')
+    list_filter = ('is_core', 'is_active', 'year_levels')
+    search_fields = ('code', 'name')
+    filter_horizontal = ('year_levels',)
 
 
 # inlines show the related rows on the student's own page
@@ -26,17 +37,16 @@ class SiblingInline(admin.TabularInline):
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ('student_id', 'last_name', 'first_name', 'grade', 'subject_list', 'created_at')
-    list_filter = ('grade', 'gender', 'subjects', 'created_at')
+    list_display = ('student_id', 'last_name', 'first_name', 'year_level', 'created_at')
+    list_filter = ('year_level', 'gender', 'created_at')
     search_fields = ('student_id', 'first_name', 'last_name')
-    ordering = ('grade', 'last_name')
+    ordering = ('year_level__order', 'last_name')
     readonly_fields = ('student_id', 'created_at')
-    filter_horizontal = ('subjects',)
     inlines = [GuardianInline, PreviousSchoolInline, SiblingInline]
 
     fieldsets = [
         ('Student', {'fields': ['student_id', 'photo', 'first_name', 'last_name', 'date_of_birth',
-                                'gender', 'nationality', 'religion', 'grade', 'starting_date', 'subjects']}),
+                                'gender', 'nationality', 'religion', 'year_level', 'starting_date']}),
         ('Contact and home', {'fields': ['postal_address', 'residential_address',
                                          'lives_with', 'transport_arrangements']}),
         ('School fee payer', {'fields': ['fee_payer', 'fee_payer_name', 'fee_payer_department']}),
@@ -52,7 +62,6 @@ class StudentAdmin(admin.ModelAdmin):
                                         'transfer_certificate_provided', 'student_report_provided',
                                         'created_at']}),
     ]
-
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('subjects')
 

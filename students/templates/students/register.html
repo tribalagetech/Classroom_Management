@@ -28,7 +28,7 @@
             {% include 'students/_field.html' with field=form.gender %}
             {% include 'students/_field.html' with field=form.nationality %}
             {% include 'students/_field.html' with field=form.religion %}
-            {% include 'students/_field.html' with field=form.grade %}
+            {% include 'students/_field.html' with field=form.year_level %}
             {% include 'students/_field.html' with field=form.starting_date %}
             {% include 'students/_field.html' with field=form.photo cols='col-12' %}
         </div></div>
@@ -130,17 +130,14 @@
     </div>
 
     <!-- 10. SUBJECTS -->
+    <!-- 10. SUBJECTS -->
     <div class="card mb-3">
         <div class="card-header"><h5 class="mb-0">10. Subjects</h5></div>
         <div class="card-body">
-            {% for checkbox in form.subjects %}
-                <div class="form-check form-check-inline">
-                    {{ checkbox.tag }}
-                    <label class="form-check-label" for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
-                </div>
-            {% empty %}
-                <span class="text-muted small">No subjects defined yet. An administrator can add them under Manage Subjects.</span>
-            {% endfor %}
+            <span class="small text-muted">
+                Subjects are not chosen per student. They come from the grade selected above,
+                as set on the Subjects page.
+            </span>
         </div>
     </div>
 

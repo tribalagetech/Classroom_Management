@@ -474,3 +474,18 @@ a:hover {
 
 /* on phones, let the calendar scroll sideways instead of squashing the days */
 @media (max-width: 767px) { .cal-table { min-width: 560px !important; } }
+
+/* ---------- Subjects and Resource Centre ---------- */
+.code-badge {
+    display: inline-block; padding: 1px 7px; border-radius: 4px;
+    font-family: Consolas, monospace; font-size: 0.75rem; font-weight: 600;
+    background: rgba(123, 63, 160, 0.35); border: 1px solid #7b3fa0; color: #f1e6ea;
+}
+.form-select-sm, .form-control-sm { background-color: var(--input-bg); border-color: var(--input-border); color: #fff; }
+.btn-outline-light.active { background-color: var(--dragon-blood); border-color: var(--dragon-blood); color: #fff; }
+/* subject code with points / total */
+.pts { font-weight: 500; }
+.pts b { color: #fff; }
+.pts-empty { opacity: 0.55; }
+
+

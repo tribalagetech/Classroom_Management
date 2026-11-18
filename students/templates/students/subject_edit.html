@@ -1,0 +1,22 @@
+{% extends 'dashboard/admin_base.html' %}
+{% block title %}Edit subject{% endblock %}
+
+{% block page %}
+<div class="card" style="max-width: 640px;">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Edit {{ subject.name }}</h5>
+        <a href="{% url 'students:subjects' %}" class="btn btn-outline-light btn-sm">Back to subjects</a>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {% include 'students/_subject_fields.html' %}
+            <button type="submit" class="btn btn-primary mt-3">Save changes</button>
+        </form>
+        <div class="small text-muted mt-3">
+            Added {{ subject.created_at|date:"j M Y" }}{% if subject.created_by %} by {{ subject.created_by.username }}{% endif %}
+            {% if subject.updated_at %} · last changed {{ subject.updated_at|date:"j M Y, H:i" }}{% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

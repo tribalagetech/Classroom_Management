@@ -1,0 +1,87 @@
+{% extends 'dashboard/admin_base.html' %}
+{% block title %}Classes{% endblock %}
+
+{% block page %}
+<div class="row g-3 mb-4">
+
+  <div class="col-xl-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">{% if editing %}Edit {{ editing.name }}{% else %}Add class{% endif %}</h5>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-2">
+            <label class="mb-1" for="{{ form.name.id_for_label }}">Class name</label>
+            {{ form.name }}
+            <div class="small text-muted">For example: Class 678</div>
+            {% for e in form.name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-2">
+            <label class="mb-1">Grades in this class</label>
+            <div>
+              {% for cb in form.year_levels %}
+              <div class="form-check form-check-inline">
+                {{ cb.tag }}
+                <label class="form-check-label" for="{{ cb.id_for_label }}">{{ cb.choice_label }}</label>
+              </div>
+              {% endfor %}
+            </div>
+            {% for e in form.year_levels.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="form-check mb-3">
+            {{ form.is_active }}
+            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Active</label>
+          </div>
+          <button type="submit" class="btn btn-primary">{% if editing %}Save changes{% else %}Add class{% endif %}</button>
+          {% if editing %}<a href="{% url 'students:classes' %}" class="btn btn-outline-light">Cancel</a>{% endif %}
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-8">
+    <div class="card">
+      <div class="card-header"><h5 class="mb-0">Classes ({{ classes|length }})</h5></div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead>
+              <tr><th>Class</th><th>Grades</th><th>Teachers</th><th>Students</th><th></th></tr>
+            </thead>
+            <tbody>
+              {% for c in classes %}
+              <tr>
+                <td>
+                  <strong>{{ c.name }}</strong>
+                  {% if not c.is_active %}<span class="badge subject-badge">Retired</span>{% endif %}
+                </td>
+                <td>
+                  {% for l in c.year_levels.all %}
+                  <span class="badge subject-badge">{{ l.name }}</span>
+                  {% endfor %}
+                </td>
+                <td>{{ c.teacher_count }}</td>
+                <td>{{ c.student_count }}</td>
+                <td class="text-end text-nowrap">
+                  <a href="{% url 'students:class_edit' c.pk %}" class="btn btn-outline-light btn-sm">Edit</a>
+                  <form method="post" action="{% url 'students:class_delete' c.pk %}" class="d-inline"
+                        onsubmit="return confirm('Delete this class?');">
+                    {% csrf_token %}
+                    <button class="btn btn-outline-light btn-sm">Delete</button>
+                  </form>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center py-3 text-muted">No classes yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

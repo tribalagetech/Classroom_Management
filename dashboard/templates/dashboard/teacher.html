@@ -21,7 +21,7 @@
             <li class="nav-item"><a class="nav-link" href="#">Classroom</a></li>
             <li class="nav-item"><a class="nav-link" href="#">Student Records</a></li>
             <li class="nav-item"><a class="nav-link" href="#">Assessment</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Upload Resources</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'resources:centre' %}">Upload Resources</a></li>
         </ul>
 
         <!-- logout is a POST form, so it needs the csrf token -->
@@ -41,7 +41,7 @@
             {% with t=request.user.teacher_profile %}
             <div class="card-body text-center border-bottom">
                 <div class="fw-semibold">{{ t.first_name }} {{ t.last_name }}</div>
-                <div class="small text-muted">{{ t.class_assigned }}</div>
+                <div class="small text-muted">{{ t.school_class|default:"No class assigned" }}</div>
             </div>
             {% endwith %}
             <nav class="nav flex-column py-2">
@@ -69,41 +69,67 @@
 
     <!-- STUDENT TABLE -->
     <div class="card mt-3">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Students</h5>
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+                <h5 class="mb-0">Students</h5>
+                {% if school_class %}
+                <div class="small text-muted">{{ school_class.name }}: {{ level_names }}</div>
+                {% endif %}
+            </div>
             <span class="badge subject-badge">{{ students|length }} total</span>
         </div>
+
+        <div class="card-body border-bottom py-2">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="small text-muted">Points for</span>
+                <a href="{{ prev_year_url }}" class="btn btn-outline-light btn-sm py-0">‹</a>
+                <strong>{{ year }}</strong>
+                <a href="{{ next_year_url }}" class="btn btn-outline-light btn-sm py-0">›</a>
+                {% for b in term_links %}
+                <a href="{{ b.url }}" class="btn btn-outline-light btn-sm {{ b.css }}" title="{{ b.dates }}">{{ b.label }}{{ b.mark }}</a>
+                {% endfor %}
+                {% if class_levels|length > 1 %}
+                <span class="ms-auto d-flex gap-1">
+                    <button type="button" class="btn btn-outline-light btn-sm active" data-filter="ALL">All grades</button>
+                    {% for l in class_levels %}
+                    <button type="button" class="btn btn-outline-light btn-sm" data-filter="{{ l.code }}">{{ l.name }}</button>
+                    {% endfor %}
+                </span>
+                {% endif %}
+            </div>
+            <div class="small text-muted mt-1">
+                Each subject shows its code, then current points / total assessment points for the term. • marks the current term.
+            </div>
+        </div>
+
         <div class="card-body p-0">
+            {% if not school_class %}
+            <div class="alert alert-warning m-3 py-2">
+                No class has been assigned to your account yet. Please ask an administrator.
+            </div>
+            {% endif %}
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0" id="studentTable">
                     <thead>
-                        <tr>
-                            <th>ID Number</th>
-                            <th>Student Name</th>
-                            <th>Grade</th>
-                            <th>Subjects</th>
-                        </tr>
+                        <tr><th>ID Number</th><th>Student Name</th><th>Grade</th><th>Subjects (points / total)</th></tr>
                     </thead>
                     <tbody>
-                        {% for s in students %}
-                        <tr>
+                    {% for s in students %}
+                        <tr data-level="{{ s.year_level.code }}">
                             <td>{{ s.student_id }}</td>
                             <td>{{ s.full_name }}</td>
-                            <!-- get_grade_display turns 7 into "Grade 7" -->
-                            <td>{{ s.get_grade_display }}</td>
+                            <td>{{ s.year_level }}</td>
                             <td>
-                                {% for subject in s.subjects.all %}
-                                <span class="badge subject-badge">{{ subject.name }}</span>
+                                {% for c in s.subject_cells %}
+                                <span class="subject-badge badge pts {{ c.css }}" title="{{ c.name }}">{{ c.code }} <b>{{ c.points|floatformat:"-1" }}</b> / {{ c.total|floatformat:"-1" }}</span>
                                 {% empty %}
-                                <span class="text-muted small">None</span>
+                                <span class="text-muted small">No subjects linked to this grade yet</span>
                                 {% endfor %}
                             </td>
                         </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="text-center py-3">No students yet.</td>
-                        </tr>
-                        {% endfor %}
+                    {% empty %}
+                        <tr><td colspan="4" class="text-center py-3">No students in your class yet.</td></tr>
+                    {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -113,4 +139,17 @@
 </main>
 
 </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.querySelectorAll('[data-filter]').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var code = btn.dataset.filter;
+    document.querySelectorAll('[data-filter]').forEach(function (b) { b.classList.toggle('active', b === btn); });
+    document.querySelectorAll('#studentTable tbody tr[data-level]').forEach(function (row) {
+      row.hidden = code !== 'ALL' && row.dataset.level !== code;
+    });
+  });
+});
+</script>
 {% endblock %}

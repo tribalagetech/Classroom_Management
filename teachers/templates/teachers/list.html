@@ -31,7 +31,7 @@
                     <tr>
                         <td>{{ t.teacher_file_number }}</td>
                         <td>{{ t.first_name }} {{ t.other_name }} {{ t.last_name }}</td>
-                        <td>{{ t.class_assigned }}</td>
+                        {{ t.school_class|default:"—" }}
                         <td>{{ t.contact }}</td>
                         <td>{{ t.email }}</td>
                         <td>

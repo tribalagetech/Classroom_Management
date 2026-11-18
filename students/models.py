@@ -67,6 +67,22 @@ class Subject(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class SchoolClass(models.Model):
+    """A teaching group made of one or more year levels, e.g. Class 678 = Grades 6, 7 and 8."""
+    name = models.CharField(max_length=50, unique=True)
+    year_levels = models.ManyToManyField(YearLevel, related_name='classes')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name_plural = 'school classes'
+
+    def __str__(self):
+        return self.name
+    
 class Student(models.Model):
 
     GENDER_CHOICES = [('F', 'Female'), ('M', 'Male')]
@@ -87,10 +103,12 @@ class Student(models.Model):
     student_id = models.CharField('ID number', max_length=20, unique=True)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    grade = models.PositiveSmallIntegerField(choices=GRADE_CHOICES)
+    grade = models.PositiveSmallIntegerField(choices=GRADE_CHOICES, null=True, blank=True)   # legacy, to be removed
+    year_level = models.ForeignKey(YearLevel, null=True, blank=True, on_delete=models.PROTECT, 
+                                   related_name='students', verbose_name='Grade applied for')
 
-    # many-to-many: one student takes many subjects, one subject has many students
-    subjects = models.ManyToManyField(Subject, blank=True, related_name='students')
+    # subject line was deleted to be replaced later.
+   
 
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -148,7 +166,7 @@ class Student(models.Model):
     student_report_provided = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ['grade', 'last_name', 'first_name']
+        ordering = ['year_level__order', 'last_name', 'first_name']
 
     @property
     def full_name(self):

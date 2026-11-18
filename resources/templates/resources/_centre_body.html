@@ -1,0 +1,208 @@
+<div class="card mb-4">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h4 class="mb-0">Resource Centre</h4>
+        {% if can_upload %}
+        <button type="button" class="btn btn-primary btn-sm"
+                data-bs-toggle="modal" qdata-bs-target="#uploadModal">⬆ Upload resource</button>
+        {% endif %}
+    </div>
+
+    <div class="card-body">
+
+        <!-- FILTERS -->
+        <form method="get" class="row g-2 align-items-end mb-3">
+            <div class="col-md-3">
+                <label class="small mb-1" for="fq">Search</label>
+                <input type="text" id="fq" name="q" value="{{ filters.q }}"
+                       class="form-control form-control-sm" placeholder="Title or file name">
+            </div>
+            <div class="col-md-2">
+                <label class="small mb-1" for="fs">Subject</label>
+                <select id="fs" name="subject" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    {% for o in subject_opts %}
+                    <option value="{{ o.value }}" {{ o.sel }}>{{ o.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="small mb-1" for="fl">Year level</label>
+                <select id="fl" name="level" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    {% for o in level_opts %}
+                    <option value="{{ o.value }}" {{ o.sel }}>{{ o.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="small mb-1" for="ft">Type</label>
+                <select id="ft" name="type" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    {% for o in type_opts %}
+                    <option value="{{ o.value }}" {{ o.sel }}>{{ o.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-center gap-2">
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" id="fm"
+                           name="mine" value="1" {{ mine_checked }}>
+                    <label class="form-check-label small" for="fm">Mine only</label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                <a href="{% url 'resources:centre' %}" class="btn btn-outline-light btn-sm">Reset</a>
+            </div>
+        </form>
+
+        <!-- LIST -->
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Resource</th><th>Subject</th><th>Levels</th>
+                        <th>Uploaded</th><th>Status</th><th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for r in rows %}
+                    <tr>
+                        <td>
+                            <strong>{{ r.title }}</strong>
+                            <span class="badge subject-badge">{{ r.get_resource_type_display }}</span>
+                            <div class="small text-muted">{{ r.description|truncatechars:90 }}</div>
+                            <div class="small text-muted">{{ r.original_name }} · {{ r.size_display }}</div>
+                        </td>
+                        <td>
+                            <span class="code-badge">{{ r.subject.code }}</span>
+                            {{ r.subject.name }}
+                        </td>
+                        <td>
+                            {% for l in r.year_levels.all %}
+                            <span class="badge subject-badge" title="{{ l.name }}">{{ l.code }}</span>
+                            {% endfor %}
+                        </td>
+                        <td class="small">
+                            {{ r.uploader }}<br>
+                            <span class="text-muted">{{ r.uploaded_at|date:"j M Y" }}</span>
+                        </td>
+                        <td class="small">
+                            {% if r.is_published %}
+                            <span class="badge bg-success">Published</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Draft</span>
+                            {% endif %}
+                            <div class="text-muted">↓ {{ r.download_count }}</div>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a href="{% url 'resources:download' r.pk %}"
+                               class="btn btn-outline-light btn-sm">Download</a>
+                            {% if r.can_manage %}
+                            <form method="post" action="{% url 'resources:toggle_publish' r.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button class="btn btn-outline-light btn-sm">{{ r.toggle_label }}</button>
+                            </form>
+                            {% endif %}
+                            {% if r.can_delete %}
+                            <form method="post" action="{% url 'resources:delete' r.pk %}" class="d-inline"
+                                  onsubmit="return confirm('Delete this resource and its file?');">
+                                {% csrf_token %}
+                                <button class="btn btn-outline-light btn-sm">Delete</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-3 text-muted">No resources found.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page.has_other_pages %}
+        <div class="d-flex justify-content-between align-items-center mt-3 small">
+            <span>Page {{ page.number }} of {{ page.paginator.num_pages }}
+                  ({{ page.paginator.count }} resources)</span>
+            <span>
+                {% if prev_url %}
+                <a class="btn btn-outline-light btn-sm" href="{{ prev_url }}">‹ Previous</a>
+                {% endif %}
+                {% if next_url %}
+                <a class="btn btn-outline-light btn-sm" href="{{ next_url }}">Next ›</a>
+                {% endif %}
+            </span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- UPLOAD POP-UP -->
+{% if can_upload %}
+{{ subject_levels|json_script:"subject-levels" }}
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadTitle" aria-hidden="true"
+     data-open="{{ open_flag }}" data-max-mb="{{ max_mb }}">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="uploadTitle">Upload a resource</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form method="post" enctype="multipart/form-data" id="uploadForm">
+        {% csrf_token %}
+        <div class="modal-body">
+          {% for e in form.non_field_errors %}
+          <div class="alert alert-danger py-2">{{ e }}</div>
+          {% endfor %}
+          <div class="row g-2">
+            {% include 'students/_field.html' with field=form.title cols='col-md-8' %}
+            {% include 'students/_field.html' with field=form.resource_type cols='col-md-4' %}
+            {% include 'students/_field.html' with field=form.subject cols='col-md-6' %}
+            <div class="col-md-6">
+              {% include 'students/_field.html' with field=form.file cols='col-12 p-0' %}
+              <div class="text-danger small" id="fileNote"></div>
+              <div class="small text-muted">
+                PDF, Word, PowerPoint, Excel, text or images. Up to {{ max_mb }} MB.
+              </div>
+            </div>
+
+            <div class="col-12 mb-1">
+              <label class="mb-1">Year levels
+                <span class="small text-muted">(pick a subject first and its levels are ticked for you)</span>
+              </label>
+              <div id="levelBoxes">
+                {% for cb in form.year_levels %}
+                <div class="form-check form-check-inline">
+                  {{ cb.tag }}
+                  <label class="form-check-label" for="{{ cb.id_for_label }}">{{ cb.choice_label }}</label>
+                </div>
+                {% endfor %}
+              </div>
+              {% for e in form.year_levels.errors %}
+              <div class="text-danger small">{{ e }}</div>
+              {% endfor %}
+            </div>
+
+            {% include 'students/_field.html' with field=form.description cols='col-12' %}
+
+            <div class="col-12">
+              <div class="form-check">
+                {{ form.is_published }}
+                <label class="form-check-label" for="{{ form.is_published.id_for_label }}">
+                  {{ form.is_published.label }}
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Upload</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}

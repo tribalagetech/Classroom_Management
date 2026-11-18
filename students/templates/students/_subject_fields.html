@@ -1,0 +1,42 @@
+<div class="mb-2">
+    <label class="mb-1" for="{{ form.name.id_for_label }}">Subject name</label>
+    {{ form.name }}
+    {% for e in form.name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+</div>
+<div class="mb-2">
+    <label class="mb-1" for="{{ form.code.id_for_label }}">Subject code</label>
+    {{ form.code }}
+    <div class="small text-muted">{{ form.code.help_text }}</div>
+    {% for e in form.code.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+</div>
+<div class="mb-2">
+    <label class="mb-1" for="{{ form.description.id_for_label }}">Description</label>
+    {{ form.description }}
+</div>
+<div class="mb-2">
+    <div class="d-flex justify-content-between align-items-center">
+        <label class="mb-1">Taught in these year levels</label>
+        <span class="small">
+            <button type="button" class="btn btn-link btn-sm p-0"
+                    onclick="document.querySelectorAll('#yl-boxes input').forEach(b => b.checked = true)">All</button> /
+            <button type="button" class="btn btn-link btn-sm p-0"
+                    onclick="document.querySelectorAll('#yl-boxes input').forEach(b => b.checked = false)">None</button>
+        </span>
+    </div>
+    <div id="yl-boxes">
+        {% for cb in form.year_levels %}
+            <div class="form-check form-check-inline">
+                {{ cb.tag }}
+                <label class="form-check-label" for="{{ cb.id_for_label }}">{{ cb.choice_label }}</label>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+<div class="form-check mb-1">
+    {{ form.is_core }}
+    <label class="form-check-label" for="{{ form.is_core.id_for_label }}">{{ form.is_core.label }}</label>
+</div>
+<div class="form-check">
+    {{ form.is_active }}
+    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Active</label>
+</div>

@@ -1,0 +1,5 @@
+{% extends 'dashboard/admin_base.html' %}
+{% load static %}
+{% block title %}Resource Centre{% endblock %}
+{% block page %}{% include 'resources/_centre_body.html' %}{% endblock %}
+{% block extra_js %}<script src="{% static 'js/resource_upload.js' %}"></script>{% endblock %}

@@ -1,58 +1,72 @@
-<!-- students/templates/students/subjects.html -->
-{% extends 'base.html' %}
-{% block title %}Manage Subjects{% endblock %}
+{% extends 'dashboard/admin_base.html' %}
+{% block title %}Subjects{% endblock %}
 
-{% block content %}
-<div class="mt-4 mb-4">
-    <a href="{% url 'teachers:list' %}" class="small">← Back</a>
+{% block page %}
+<div class="row g-3 mb-4">
 
-    {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} py-2 mt-2">{{ message }}</div>
-    {% endfor %}
-
-    <div class="row g-3 mt-1">
-        <!-- ADD FORM -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header"><h5 class="mb-0">Add Subject</h5></div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        {% for field in form %}
-                            <label class="mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                            {{ field }}
-                            {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
-                            <div class="mb-2"></div>
-                        {% endfor %}
-                        <button type="submit" class="btn btn-primary w-100">Add Subject</button>
-                    </form>
-                </div>
+    <div class="col-xl-4">
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0">Add subject</h5></div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% include 'students/_subject_fields.html' %}
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Add subject</button>
+                </form>
             </div>
         </div>
+    </div>
 
-        <!-- EXISTING SUBJECTS -->
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header"><h5 class="mb-0">Subjects ({{ subjects|length }})</h5></div>
-                <div class="card-body">
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h5 class="mb-0">Subjects ({{ subjects|length }})</h5>
+                <form method="get" class="d-flex align-items-center gap-2 m-0">
+                    <label class="small" for="lvl">Year level</label>
+                    <select name="level" id="lvl" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">All</option>
+                        {% for l in levels %}
+                            <option value="{{ l.pk }}" {% if level == l.pk|stringformat:"s" %}selected{% endif %}>{{ l.name }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
                     <table class="table table-sm align-middle mb-0">
-                        <thead><tr><th>Subject</th><th>Description</th><th>Students</th><th></th></tr></thead>
+                        <thead>
+                            <tr><th>Code</th><th>Subject</th><th>Year levels</th><th>Students</th><th>Files</th><th></th></tr>
+                        </thead>
                         <tbody>
                         {% for s in subjects %}
-                            <tr>
-                                <td>{{ s.name }}</td>
-                                <td class="small text-muted">{{ s.description }}</td>
+                            <tr {% if not s.is_active %}class="opacity-50"{% endif %}>
+                                <td><span class="code-badge">{{ s.code }}</span></td>
+                                <td>
+                                    {{ s.name }}
+                                    {% if not s.is_core %}<span class="badge subject-badge">Elective</span>{% endif %}
+                                    {% if not s.is_active %}<span class="badge subject-badge">Retired</span>{% endif %}
+                                    {% if s.description %}<div class="small text-muted">{{ s.description }}</div>{% endif %}
+                                </td>
+                                <td>
+                                    {% for l in s.year_levels.all %}
+                                        <span class="badge subject-badge" title="{{ l.name }}">{{ l.code }}</span>
+                                    {% empty %}
+                                        <span class="small text-muted">None set</span>
+                                    {% endfor %}
+                                </td>
                                 <td>{{ s.student_count }}</td>
-                                <td class="text-end">
-                                    <form method="post" action="{% url 'students:subject_delete' s.pk %}"
-                                          onsubmit="return confirm('Delete {{ s.name }}?');" class="m-0">
+                                <td>{{ s.resource_count }}</td>
+                                <td class="text-end text-nowrap">
+                                    <a href="{% url 'students:subject_edit' s.pk %}" class="btn btn-outline-light btn-sm">Edit</a>
+                                    <form method="post" action="{% url 'students:subject_delete' s.pk %}" class="d-inline"
+                                          onsubmit="return confirm('Delete {{ s.name|escapejs }}?');">
                                         {% csrf_token %}
                                         <button class="btn btn-outline-light btn-sm">Delete</button>
                                     </form>
                                 </td>
                             </tr>
                         {% empty %}
-                            <tr><td colspan="4" class="text-center">No subjects yet.</td></tr>
+                            <tr><td colspan="6" class="text-center py-3">No subjects found.</td></tr>
                         {% endfor %}
                         </tbody>
                     </table>
@@ -60,5 +74,6 @@
             </div>
         </div>
     </div>
+
 </div>
 {% endblock %}
